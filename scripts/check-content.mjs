@@ -36,7 +36,7 @@ const walk = (where, v) => {
   else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => walk(`${where}.${k}`, x));
 };
 
-if (lessons.length !== 15) errors.push(`expected 15 lessons, got ${lessons.length}`);
+if (lessons.length !== 16) errors.push(`expected 16 lessons, got ${lessons.length}`);
 const qids = new Set();
 lessons.forEach((l, i) => {
   if (l.id !== i + 1) errors.push(`lesson order: index ${i} has id ${l.id}`);
@@ -44,6 +44,8 @@ lessons.forEach((l, i) => {
     if (l[k] === undefined) errors.push(`lesson ${l.id}: missing ${k}`);
   }
   walk(`lesson ${l.id}`, l);
+  if (!l.predict) errors.push(`lesson ${l.id}: missing predict`);
+  if (!Array.isArray(l.work) || l.work.length < 2) errors.push(`lesson ${l.id}: work needs 2+ tasks`);
   [...l.quiz, ...(l.review || [])].forEach((q) => {
     if (qids.has(q.id)) errors.push(`duplicate question id ${q.id}`);
     qids.add(q.id);

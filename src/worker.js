@@ -25,6 +25,7 @@ const DEFAULT_SETTINGS = {
 const SESSION_COOKIE = 'sdc_session';
 const LONG_SESSION = 30 * 86400;   // "לזכור אותי"
 const SHORT_SESSION = 12 * 3600;   // מחשב משותף
+const TOTAL_LESSONS = 16;
 const MAX_LOGIN_FAILS = 8;         // לכל IP ב-15 דקות
 
 export default {
@@ -392,7 +393,7 @@ function buildEmail(kind, { state, meta, days }) {
     <div style="padding:24px 26px;font-size:16px;line-height:1.7">
       <p style="margin-top:0">${copy.body}</p>
       ${next ? `<p style="background:#f3efff;border-radius:10px;padding:12px 14px;margin:18px 0"><b>השיעור הבא:</b> ${esc(next.id)}. ${esc(next.title)}</p>` : ''}
-      <p style="color:#6d6687;font-size:14px">התקדמות: ${done} מתוך 15 שיעורים</p>
+      <p style="color:#6d6687;font-size:14px">התקדמות: ${done} מתוך ${TOTAL_LESSONS} שיעורים</p>
       ${link ? `<p style="text-align:center;margin:26px 0 8px"><a href="${esc(link)}" style="background:#e8705a;color:#fff;text-decoration:none;padding:12px 26px;border-radius:999px;font-weight:bold;display:inline-block">לשיעור ←</a></p>` : ''}
     </div>
     <div style="padding:12px 26px;background:#faf7f2;color:#8a83a3;font-size:12px">אפשר לשנות את זמני התזכורות בדף "הגדרות" באתר.</div>

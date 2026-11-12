@@ -13,7 +13,7 @@
     { min: 4, name: '🌿 Mid-level', desc: 'היסודות במקום' },
     { min: 8, name: '🌳 Senior', desc: 'מבינה איך נתונים גדלים' },
     { min: 12, name: '🏔️ Staff', desc: 'רואה את התמונה המלאה' },
-    { min: 15, name: '🏛️ Architect', desc: 'סיימת את כל המסע!' },
+    { min: 16, name: '🏛️ Architect', desc: 'סיימת את כל המסע!' },
   ];
   const CONFIDENCE = { sure: 'בטוחה', unsure: 'מתלבטת', guess: 'מנחשת' };
 
@@ -30,7 +30,7 @@
   });
 
   // ---------- מצב ----------
-  const blank = () => ({ completed: {}, quiz: {}, exercises: {}, reflections: {}, mine: [], visits: [], nextLesson: null, updatedAt: 0 });
+  const blank = () => ({ completed: {}, quiz: {}, exercises: {}, reflections: {}, predictions: {}, work: {}, mine: [], visits: [], nextLesson: null, updatedAt: 0 });
   let state = (() => {
     try { return { ...blank(), ...JSON.parse(safeGet(STATE_KEY) || '{}') }; } catch { return blank(); }
   })();
@@ -124,7 +124,7 @@
     const newer = (a.updatedAt || 0) >= (b.updatedAt || 0) ? a : b;
     const older = newer === a ? b : a;
     const out = { ...blank(), ...older, ...newer };
-    for (const k of ['completed', 'exercises', 'reflections']) out[k] = { ...(older[k] || {}), ...(newer[k] || {}) };
+    for (const k of ['completed', 'exercises', 'reflections', 'predictions', 'work']) out[k] = { ...(older[k] || {}), ...(newer[k] || {}) };
     out.quiz = { ...(older.quiz || {}) };
     for (const [id, r] of Object.entries(newer.quiz || {})) {
       if (!out.quiz[id] || (r.at || 0) >= (out.quiz[id].at || 0)) out.quiz[id] = r;
@@ -294,6 +294,12 @@
 
     push('crisis', '🚨 המשבר', `<div class="crisis">${lesson.crisis.time ? `<span class="time">${esc(lesson.crisis.time)}</span>` : ''}<h2>${lesson.crisis.title}</h2>${r(lesson.crisis.html)}</div>`);
 
+    if (lesson.predict) {
+      push('predict', '🤔 מה את היית עושה?', `${blockTitle('🤔', 'רגע לפני ההסבר: מה את היית עושה?', 'ניחוש של דקה. בסוף השיעור נחזור אליו')}
+        <div class="card content predict"><p>${r(lesson.predict)}</p>
+        ${doc ? '<p class="muted">✍️ כתבי כאן את התשובה שלך לפני שממשיכים לקרוא.</p>' : `<textarea class="reflect" data-predict="${lesson.id}" placeholder="מה הייתי עושה, ולמה. אין תשובה לא נכונה.">${esc(state.predictions[lesson.id] || '')}</textarea>`}</div>`);
+    }
+
     lesson.sections.forEach((s, i) => {
       push(`s${i + 1}`, s.title, `${blockTitle(s.icon || '🧠', s.title, s.sub || '')}<div class="card content">${
         doc ? r(s.html).replace(/<div class="widget"[^>]*><\/div>/g, '<div class="callout">🎛️ בשיעור באתר יש כאן סימולציה אינטראקטיבית.</div>') : r(s.html)
@@ -327,8 +333,14 @@
         ${doc ? '' : '<div class="score-box" hidden></div>'}`);
     }
 
-    push('reflect', '💼 ובעבודה שלך?', `${blockTitle('💼', 'ובעבודה שלך?', 'דקה של חשיבה על המערכת שאת עובדת עליה')}
-      <div class="card content"><p>${r(lesson.reflection)}</p>
+    const done = state.work[lesson.id] || {};
+    push('reflect', '💼 ובעבודה שלך?', `${blockTitle('💼', 'ובעבודה שלך?', 'מה שבאמת הופך ידע לניסיון: ליישם על המערכת שאת עובדת עליה')}
+      <div class="card content">
+      ${lesson.predict ? `<div class="callout">🤔 <b>חזרי לניחוש מתחילת השיעור.</b> מה היית משנה בו עכשיו? מה פספסת, ומה דווקא ידעת? <a href="#/lesson/${lesson.id}" data-jump="predict">לניחוש שלי ↑</a></div>` : ''}
+      ${lesson.work ? `<h3>🔧 משימות בשטח השבוע</h3><p class="muted">לא חייבים הכל, וגם לא באותו יום. מספיקה אחת כדי שהשיעור ייתפס.</p>
+        <ul class="work-list">${lesson.work.map((w, i) => `<li><label>${doc ? '☐' : `<input type="checkbox" data-work="${lesson.id}:${i}"${done[i] ? ' checked' : ''}>`}<span>${r(w)}</span></label></li>`).join('')}</ul>
+        <h3>💭 ולחשוב</h3>` : ''}
+      <p>${r(lesson.reflection)}</p>
       ${doc ? '' : `<textarea class="reflect" data-reflect="${lesson.id}" placeholder="מחשבות, תצפיות, שאלות לשאול בעבודה...">${esc(state.reflections[lesson.id] || '')}</textarea>`}</div>`);
 
     return { blocks, ctx };
@@ -460,11 +472,11 @@
     main.innerHTML = `
       <section class="hero">
         <div>
-          <span class="chip w2">קורס אישי · 15 שיעורים · שיעור כל יומיים</span>
+          <span class="chip w2">קורס אישי · ${lessons.length} שיעורים · שיעור כל יומיים</span>
           <h1 style="margin-top:14px">מהמילים הלועזיות בישיבה<br>ל<span class="hl">הצעות ארכיטקטורה בביטחון</span></h1>
           <p class="lead">בכל שיעור, רבע עד חצי שעה: משבר אמיתי, הסבר יסודי עם אנלוגיות, סימולציה, תרגיל תכנון ובוחן שמחייב לחשוב. ולאורך כל הדרך בונים יחד מערכת אחת אמיתית: אפליקציית הצ'אט <b>שיחון</b>.</p>
           <div class="row">
-            ${nl ? `<a class="btn accent" href="#/lesson/${nl.id}">${doneCount() ? 'להמשיך' : 'להתחיל'}: שיעור ${nl.id} ←</a>` : '<a class="btn accent" href="#/lesson/15">🏛️ סיימת! לחזור לפרויקט הסיום</a>'}
+            ${nl ? `<a class="btn accent" href="#/lesson/${nl.id}">${doneCount() ? 'להמשיך' : 'להתחיל'}: שיעור ${nl.id} ←</a>` : `<a class="btn accent" href="#/lesson/${lessons.length}">🏛️ סיימת! לחזור לשיעור האחרון</a>`}
             <a class="btn ghost" href="#/glossary">📖 למילון המושגים</a>
           </div>
         </div>
@@ -534,7 +546,7 @@
       { icon: '🔥', name: 'בקצב', how: '4 שיעורים ברצף, עד 3 ימים בין שיעור לשיעור', got: best >= 4 },
       { icon: '🎯', name: 'צלפית', how: '20 תשובות נכונות שסימנת "בטוחה"', got: sureRight >= 20 },
       { icon: '🔍', name: 'סקרנית', how: '5 פריטים במאגר האישי', got: activeMine().length >= 5 },
-      { icon: '🏛️', name: 'ארכיטקטית', how: 'לסיים את כל 15 השיעורים', got: doneCount() === lessons.length },
+      { icon: '🏛️', name: 'ארכיטקטית', how: `לסיים את כל ${lessons.length} השיעורים`, got: doneCount() === lessons.length },
     ];
   }
 
@@ -801,7 +813,7 @@
   function renderAbout() {
     main.innerHTML = `<div class="card content" style="max-width:820px;margin:0 auto">
       <h1>על הקורס</h1>
-      <p>הקורס בנוי ל-15 שיעורים, שיעור כל יומיים, כך שמסיימים בערך בחודש. כל שיעור לוקח רבע עד חצי שעה.</p>
+      <p>הקורס בנוי ל-${lessons.length} שיעורים, שיעור כל יומיים, כך שמסיימים בערך בחודש. כל שיעור לוקח רבע עד חצי שעה.</p>
       <h3>למה דווקא אפליקציית צ'אט?</h3>
       <p>צ'אט הוא אחת המערכות שהכי טוב מלמדות System Design. יש בה כמעט כל אתגר קלאסי: מיליוני חיבורים פתוחים בזמן אמת, הודעות שאסור לאבד, סדר הודעות, סטטוס "מחובר", קבוצות ענק, תמונות וסרטונים, חיפוש ואבטחה. כל מושג שתלמדי כאן מופיע גם במערכות אחרות, כמו מערכות תשלומים, מסחר או ניהול.</p>
       <h3>איך לומדים הכי טוב מהקורס</h3>
@@ -1008,9 +1020,19 @@
   document.addEventListener('input', (e) => {
     const ex = e.target.closest('[data-ex]');
     const rf = e.target.closest('[data-reflect]');
-    if (!ex && !rf) return;
+    const pr = e.target.closest('[data-predict]');
+    const wk = e.target.closest('[data-work]');
+    if (wk) {
+      const [lid, i] = wk.dataset.work.split(':');
+      state.work[lid] = { ...(state.work[lid] || {}), [i]: wk.checked };
+      if (wk.checked) toast('כל הכבוד! ככה לומדים באמת 💪');
+      save();
+      return;
+    }
+    if (!ex && !rf && !pr) return;
     if (ex) state.exercises[ex.dataset.ex] = ex.value;
     if (rf) state.reflections[rf.dataset.reflect] = rf.value;
+    if (pr) state.predictions[pr.dataset.predict] = pr.value;
     clearTimeout(typingTimer);
     typingTimer = setTimeout(() => save(), 700);
   });

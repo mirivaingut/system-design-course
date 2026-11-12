@@ -307,6 +307,10 @@ a.term:hover { background: var(--primary-soft); border-bottom-style: solid; }
 
 /* "לדבר כמו ארכיטקטית" */
 .phrases { display: grid; gap: 12px; }
+.work-list { list-style: none; padding: 0; margin: 0 0 1.2em; display: grid; gap: 8px; }
+.work-list label { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border-radius: 12px; padding: 12px 14px; cursor: pointer; line-height: 1.6; }
+.work-list input { width: 20px; height: 20px; margin-top: 3px; flex: none; accent-color: var(--primary); cursor: pointer; }
+.work-list input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
 .phrase { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px 18px; display: grid; gap: 4px; border-inline-start: 4px solid var(--accent); }
 .phrase .say { font-weight: 700; font-size: 18px; }
 .phrase .when { font-size: 15px; color: var(--ink-soft); }
