@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const { lessons, glossary: G, weeks } = window.SDC;
+  const { lessons, glossary: G, weeks, patterns: PATTERNS = [], patternQuiz: PQUIZ = [], practice: PRACTICE = [], cheatsheet: CHEAT = null } = window.SDC;
   const STATE_KEY = 'sdc-state-v1';
   const THEME_KEY = 'sdc-theme';
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -13,7 +13,7 @@
     { min: 4, name: '🌿 Mid-level', desc: 'היסודות במקום' },
     { min: 8, name: '🌳 Senior', desc: 'מבינה איך נתונים גדלים' },
     { min: 12, name: '🏔️ Staff', desc: 'רואה את התמונה המלאה' },
-    { min: 16, name: '🏛️ Architect', desc: 'סיימת את כל המסע!' },
+    { min: lessons.length, name: '🏛️ Architect', desc: 'סיימת את כל המסע!' },
   ];
   const CONFIDENCE = { sure: 'בטוחה', unsure: 'מתלבטת', guess: 'מנחשת' };
 
@@ -28,9 +28,11 @@
   lessons.forEach((l) => {
     [...(l.quiz || []), ...(l.review || [])].forEach((q) => { QINDEX[q.id] = { q, lesson: l }; });
   });
+  const PQ_LESSON = { id: 0, title: 'בוחן זיהוי תבניות' };
+  PQUIZ.forEach((q) => { QINDEX[q.id] = { q, lesson: PQ_LESSON }; });
 
   // ---------- מצב ----------
-  const blank = () => ({ completed: {}, quiz: {}, exercises: {}, reflections: {}, predictions: {}, work: {}, mine: [], visits: [], nextLesson: null, updatedAt: 0 });
+  const blank = () => ({ completed: {}, quiz: {}, exercises: {}, reflections: {}, predictions: {}, work: {}, practice: {}, mine: [], visits: [], nextLesson: null, updatedAt: 0 });
   let state = (() => {
     try { return { ...blank(), ...JSON.parse(safeGet(STATE_KEY) || '{}') }; } catch { return blank(); }
   })();
@@ -124,7 +126,7 @@
     const newer = (a.updatedAt || 0) >= (b.updatedAt || 0) ? a : b;
     const older = newer === a ? b : a;
     const out = { ...blank(), ...older, ...newer };
-    for (const k of ['completed', 'exercises', 'reflections', 'predictions', 'work']) out[k] = { ...(older[k] || {}), ...(newer[k] || {}) };
+    for (const k of ['completed', 'exercises', 'reflections', 'predictions', 'work', 'practice']) out[k] = { ...(older[k] || {}), ...(newer[k] || {}) };
     out.quiz = { ...(older.quiz || {}) };
     for (const [id, r] of Object.entries(newer.quiz || {})) {
       if (!out.quiz[id] || (r.at || 0) >= (out.quiz[id].at || 0)) out.quiz[id] = r;
@@ -333,6 +335,17 @@
         ${doc ? '' : '<div class="score-box" hidden></div>'}`);
     }
 
+    if (lesson.further) {
+      push('further', '📚 לקריאה נוספת', `${blockTitle('📚', 'לקריאה נוספת', 'מקורות אמיתיים מהתעשייה, למי שרוצה להעמיק')}
+        <div class="card content"><ul class="further">${lesson.further.map((f) => `<li><a href="https://www.google.com/search?q=${encodeURIComponent(f.search || f.title)}" target="_blank" rel="noopener">${esc(f.title)}</a> <span class="muted">· ${esc(f.source)}</span><div class="soft">${r(f.why)}</div></li>`).join('')}</ul>
+        ${doc ? '' : '<p class="muted" style="font-size:14px;margin:0">הקישורים פותחים חיפוש, כדי להגיע תמיד לגרסה העדכנית של המקור.</p>'}</div>`);
+    }
+    const practiceHere = PRACTICE.filter((pr) => pr.after === lesson.id);
+    if (practiceHere.length && !doc) {
+      push('practice', '🏋️ תרגול נפתח', `${blockTitle('🏋️', 'נפתח תרגול חדש', 'אחרי השיעור הזה יש לך מספיק כלים לתכנן מערכת חדשה מאפס')}
+        <div class="grid-2">${practiceHere.map(practiceCard).join('')}</div>`);
+    }
+
     const done = state.work[lesson.id] || {};
     push('reflect', '💼 ובעבודה שלך?', `${blockTitle('💼', 'ובעבודה שלך?', 'מה שבאמת הופך ידע לניסיון: ליישם על המערכת שאת עובדת עליה')}
       <div class="card content">
@@ -512,6 +525,15 @@
         }).join('')}</div></section>`; }).join('')}
 
       <section class="week">
+        <div class="week-head"><h2>🧰 מעבר לשיעורים</h2><span class="muted">לתרגל, לזהות, ולשלוף מהר</span></div>
+        <div class="grid-3">
+          <a class="card tool-card" href="#/practice"><span class="t-ico">🏋️</span><b>תרגול תכנון</b><span class="soft">${PRACTICE.length} מערכות חדשות מאפס, צעד אחרי צעד, עם "מה מצופה בכל רמה". ${practiceDone()}/${PRACTICE.length} הושלמו</span></a>
+          <a class="card tool-card" href="#/patterns"><span class="t-ico">🧩</span><b>תבניות חוזרות</b><span class="soft">${PATTERNS.length} בעיות שמופיעות כמעט בכל מערכת, והפתרונות המקובלים. עם בוחן זיהוי</span></a>
+          <a class="card tool-card" href="#/cheatsheet"><span class="t-ico">📋</span><b>דף שליפה</b><span class="soft">ברירות מחדל בטוחות, טעויות נפוצות, והשאלות ששואלים בכל דיון</span></a>
+        </div>
+      </section>
+
+      <section class="week">
         <div class="week-head"><h2>🏅 תגים</h2><span class="muted">נפתחים לאורך הדרך</span></div>
         <div class="badges">${badges().map((b) => `<div class="badge ${b.got ? '' : 'locked'}" title="${esc(b.how)}"><span class="b-ico">${b.icon}</span><div><b>${b.name}</b><div class="muted" style="font-size:13px">${b.how}</div></div></div>`).join('')}</div>
       </section>
@@ -545,6 +567,8 @@
       { icon: '📡', name: 'מתקשרת', how: 'לסיים את שבוע 3', got: weekDone(3) },
       { icon: '🔥', name: 'בקצב', how: '4 שיעורים ברצף, עד 3 ימים בין שיעור לשיעור', got: best >= 4 },
       { icon: '🎯', name: 'צלפית', how: '20 תשובות נכונות שסימנת "בטוחה"', got: sureRight >= 20 },
+      { icon: '🏋️', name: 'מתרגלת', how: 'לסיים 3 תרגילי תכנון בדף התרגול', got: practiceDone() >= 3 },
+      { icon: '🧩', name: 'מזהה תבניות', how: '6 תשובות נכונות בבוחן זיהוי התבניות', got: PQUIZ.filter((q) => state.quiz[q.id] && state.quiz[q.id].ok).length >= 6 },
       { icon: '🔍', name: 'סקרנית', how: '5 פריטים במאגר האישי', got: activeMine().length >= 5 },
       { icon: '🏛️', name: 'ארכיטקטית', how: `לסיים את כל ${lessons.length} השיעורים`, got: doneCount() === lessons.length },
     ];
@@ -809,11 +833,123 @@
     }).catch(() => toast('הקובץ לא תקין'));
   }
 
+  // ---------- תרגול ----------
+  const practiceDone = () => PRACTICE.filter((pr) => (state.practice[pr.id] || {}).done).length;
+  const LEVEL_NAMES = { mid: '🌿 Mid-level', senior: '🌳 Senior', staff: '🏔️ Staff' };
+
+  function practiceCard(pr) {
+    const st = state.practice[pr.id] || {};
+    const started = Object.values(st.answers || {}).some((v) => v && v.trim());
+    const ready = !!state.completed[pr.after];
+    return `<a class="card tool-card practice-card ${st.done ? 'done' : ''}" href="#/practice/${pr.id}">
+      <span class="t-ico">${pr.icon}</span>
+      <b>${esc(pr.title)}</b>
+      <span class="row" style="gap:6px"><span class="chip">${pr.level}</span><span class="chip">⏱️ ${pr.minutes} דק'</span>${st.done ? '<span class="chip w3">✓ הושלם</span>' : started ? '<span class="chip w4">בתהליך</span>' : ''}</span>
+      <span class="soft">${pr.brief.replace(/<[^>]+>/g, '').slice(0, 110)}...</span>
+      <span class="muted" style="font-size:13px">${ready ? '✓ ' : ''}מומלץ אחרי שיעור ${pr.after}</span></a>`;
+  }
+
+  function renderPracticeList() {
+    main.innerHTML = `<div class="page-narrow">
+      <h1>🏋️ תרגול תכנון</h1>
+      <p class="lead soft">בשיעורים בנית את שיחון. כאן בודקים שהשיטה עובדת גם על מערכות אחרות. בכל תרגיל, חמישה צעדים: דרישות, הערכה גסה, API ונתונים, ארכיטקטורה, ו"מה קורה כש...". כותבים תשובה, ורק אז פותחים את הפתרון.</p>
+      <div class="callout"><p>💡 <b>הכי חשוב:</b> לכתוב לפני שמציצים, גם תשובה חלקית. ההשוואה בין מה שכתבת לפתרון היא בדיוק המקום שבו לומדים. ובסוף כל תרגיל אפשר ליצור פרומפט שמבקש מ-Claude לבקר את התשובות שלך כמו ארכיטקט בכיר.</p></div>
+      <div class="grid-2" style="margin-top:20px">${PRACTICE.map(practiceCard).join('')}</div></div>`;
+  }
+
+  function renderProblem(id) {
+    const pr = PRACTICE.find((x) => x.id === id);
+    if (!pr) return renderNotFound();
+    const st = state.practice[pr.id] || {};
+    const ans = st.answers || {};
+    const pats = pr.patterns.map((pid) => PATTERNS.find((x) => x.id === pid)).filter(Boolean);
+    main.innerHTML = `<div class="page-narrow">
+      <a href="#/practice" class="muted" style="text-decoration:none">→ כל התרגילים</a>
+      <h1 style="margin-top:8px">${pr.icon} ${esc(pr.title)}</h1>
+      <div class="row" style="gap:6px;margin-bottom:14px"><span class="chip">${pr.level}</span><span class="chip">⏱️ ${pr.minutes} דק'</span><span class="chip">מומלץ אחרי שיעור ${pr.after}</span>${st.done ? '<span class="chip w3">✓ הושלם</span>' : ''}</div>
+      <div class="crisis"><h2>המשימה</h2>${rich(pr.brief)}</div>
+      ${pr.steps.map((s, i) => `<section class="block">
+        ${blockTitle(['📋', '🧮', '🔌', '🏗️', '💥'][i] || '✏️', `צעד ${i + 1}: ${s.title}`, '')}
+        <div class="card exercise content"><p>${rich(s.ask)}</p>
+          <textarea data-pr="${pr.id}:${i}" placeholder="התשובה שלך. נשמרת אוטומטית.">${esc(ans[i] || '')}</textarea>
+          ${s.hint ? `<details class="reveal"><summary>רמז</summary><div>${rich(s.hint)}</div></details>` : ''}
+          <details class="reveal solution"><summary>✅ פתרון לדוגמה</summary><div>${rich(s.solution)}</div></details>
+        </div></section>`).join('')}
+      <section class="block">
+        ${blockTitle('🎚️', 'מה מצופה בכל רמה', 'אותה שאלה, עומק אחר. איפה התשובות שלך נמצאות?')}
+        <div class="levels">${Object.entries(pr.levels).map(([k, v]) => `<div class="card"><b>${LEVEL_NAMES[k]}</b><p class="soft" style="margin:6px 0 0">${rich(v)}</p></div>`).join('')}</div>
+      </section>
+      <section class="block">
+        ${blockTitle('⚠️', 'טעויות נפוצות בתרגיל הזה', '')}
+        <div class="card content"><ul>${pr.mistakes.map((m) => `<li>${rich(m)}</li>`).join('')}</ul>
+        <p class="muted" style="margin:0">התבניות בתרגיל: ${pats.map((x) => `<a href="#/patterns/${x.id}">${x.icon} ${x.title}</a>`).join(' · ')}</p></div>
+      </section>
+      <div class="done-box">
+        <div class="big">${st.done ? '🏅' : '🏁'}</div>
+        <h2>${st.done ? 'התרגיל הזה הושלם' : 'סיימת לעבור על כל הצעדים?'}</h2>
+        <p class="soft">רוצה ביקורת אמיתית? הפרומפט כולל את כל מה שכתבת, ומבקש מ-Claude לבחון אותך כמו ארכיטקט בכיר: מה חזק, מה חסר, ושאלת המשך קשה.</p>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" data-act="practice-prompt" data-arg="${pr.id}">✨ פרומפט לביקורת על התשובות שלי</button>
+          ${st.done ? '' : `<button class="btn accent" data-act="practice-done" data-arg="${pr.id}">✓ סימון כהושלם</button>`}
+        </div>
+      </div></div>`;
+  }
+
+  function practicePrompt(pr) {
+    const ans = (state.practice[pr.id] || {}).answers || {};
+    return [`היי Claude! ${PROFILE}`, '', `אני מתרגלת תכנון מערכת: "${pr.title}".`, plain(pr.brief).trim(), '',
+      ...pr.steps.flatMap((s, i) => [`### צעד ${i + 1}: ${s.title}`, `השאלה: ${plain(s.ask)}`, `התשובה שלי: ${(ans[i] || '').trim() || '(לא עניתי)'}`, '']),
+      'תבחן את התשובות שלי כמו ארכיטקט בכיר בישיבת Design Review:',
+      '1. מה חזק בתשובות שלי?',
+      '2. מה חסר או שגוי, לפי סדר חשיבות? תסביר למה זה חשוב.',
+      '3. לאיזו רמה (Mid, Senior, Staff) התשובות שלי מתאימות, ומה היה מקפיץ אותן רמה?',
+      '4. תשאל אותי שאלת המשך קשה אחת, ותחכה לתשובה שלי לפני שאתה ממשיך.',
+      'תכתוב בעברית, ותפנה אליי בלשון נקבה.'].join('\n');
+  }
+
+  // ---------- תבניות ----------
+  function renderPatterns() {
+    main.innerHTML = `<div class="page-narrow">
+      <h1>🧩 תבניות חוזרות</h1>
+      <p class="lead soft">רוב בעיות התכנון הן וריאציות של כמה בעיות קבועות. ארכיטקטים מנוסים לא ממציאים כל פעם מחדש: הם <b>מזהים את התבנית</b>, ושולפים את הפתרונות המקובלים עם המחיר של כל אחד. לכל תבנית: איך מזהים אותה, מה עושים, ומה המלכודת.</p>
+      <div class="pattern-index">${PATTERNS.map((pt) => `<a href="#/patterns/${pt.id}">${pt.icon} ${pt.title}</a>`).join('')}<a href="#/cheatsheet">📋 דף שליפה</a></div>
+      ${PATTERNS.map((pt) => `<section class="block pattern" id="p-${pt.id}">
+        ${blockTitle(pt.icon, pt.title, rich(pt.gist))}
+        <div class="card content">
+          <h3>🔎 איך מזהים</h3><ul>${pt.signals.map((x) => `<li>${rich(x)}</li>`).join('')}</ul>
+          <h3>🧰 מה עושים</h3>
+          ${table({ head: ['כלי', 'מתי', 'המחיר'], rows: pt.moves })}
+          <div class="warn"><p><b>המלכודת:</b> ${rich(pt.pitfall)}</p></div>
+          <p class="soft" style="margin:0">${rich(pt.example)} · <b>שיעורים:</b> ${pt.lessons.map((id) => { const l = lessonById(id); return `<a href="#/lesson/${id}">${id}. ${esc(l.title)}</a>`; }).join(', ')}</p>
+        </div></section>`).join('')}
+      <section class="block" id="p-quiz">
+        ${blockTitle('🎯', 'בוחן זיהוי', `${PQUIZ.length} תרחישים ממערכות אחרות. איזו תבנית מסתתרת בכל אחד?`)}
+        <div class="quiz">${PQUIZ.map((q, i) => questionHTML(q, i + 1)).join('')}</div>
+        <div class="score-box" hidden></div>
+      </section></div>`;
+  }
+
+  // ---------- דף שליפה ----------
+  function renderCheatsheet() {
+    if (!CHEAT) return renderNotFound();
+    const L = (id) => `<a href="#/lesson/${id}" class="muted">שיעור ${id}</a>`;
+    main.innerHTML = `<div class="page-narrow cheatsheet">
+      <div class="row" style="justify-content:space-between;align-items:center"><h1>📋 דף שליפה</h1><button class="btn ghost small no-print" data-act="print">🖨️ הדפסה / PDF</button></div>
+      <p class="lead soft">לפני ישיבת דיזיין, או כשמשהו לא מסתדר. כל שורה מפנה לשיעור שבו היא מוסברת.</p>
+      <section class="block">${blockTitle('✅', 'ברירות מחדל בטוחות', 'מתחילים מכאן, וסוטים רק כשיש סיבה מדודה')}
+        ${table({ head: ['נושא', 'ברירת מחדל', 'מתי לסטות', ''], rows: CHEAT.defaults.map(([a, b, c, id]) => [a, `<b>${b}</b>`, c, L(id)]) })}</section>
+      <section class="block">${blockTitle('⚠️', 'טעויות נפוצות', 'ומה עושים במקום')}
+        ${table({ head: ['הטעות', 'במקום', ''], rows: CHEAT.mistakes.map(([a, b, id]) => [a, b, L(id)]) })}</section>
+      <section class="block">${blockTitle('❓', 'שאלות ששואלים בכל דיון', 'אם תזכרי רק דבר אחד מהקורס, שיהיה זה')}
+        <div class="card content"><ol class="steps">${CHEAT.questions.map((q) => `<li>${rich(q)}</li>`).join('')}</ol></div></section>
+      <p class="soft">ולמספרים שכדאי לזכור (זמני גישה, רוחב פס, סדרי גודל): <a href="#/lesson/2">שיעור 2</a>.</p></div>`;
+  }
+
   // ---------- אודות ----------
   function renderAbout() {
     main.innerHTML = `<div class="card content" style="max-width:820px;margin:0 auto">
       <h1>על הקורס</h1>
-      <p>הקורס בנוי ל-${lessons.length} שיעורים, שיעור כל יומיים, כך שמסיימים בערך בחודש. כל שיעור לוקח רבע עד חצי שעה.</p>
+      <p>הקורס בנוי ל-${lessons.length} שיעורים, שיעור כל יומיים, כך שמסיימים בערך בחמישה שבועות. שבוע 5 הוא העמקה, ואפשר לעשות אותו בקצב שלך. ובנוסף לשיעורים: תרגול על מערכות אחרות, עמוד תבניות ודף שליפה. כל שיעור לוקח רבע עד חצי שעה.</p>
       <h3>למה דווקא אפליקציית צ'אט?</h3>
       <p>צ'אט הוא אחת המערכות שהכי טוב מלמדות System Design. יש בה כמעט כל אתגר קלאסי: מיליוני חיבורים פתוחים בזמן אמת, הודעות שאסור לאבד, סדר הודעות, סטטוס "מחובר", קבוצות ענק, תמונות וסרטונים, חיפוש ואבטחה. כל מושג שתלמדי כאן מופיע גם במערכות אחרות, כמו מערכות תשלומים, מסחר או ניהול.</p>
       <h3>איך לומדים הכי טוב מהקורס</h3>
@@ -847,11 +983,16 @@
     else if (page === 'my') renderMine();
     else if (page === 'settings') renderSettings();
     else if (page === 'about') renderAbout();
+    else if (page === 'practice') arg ? renderProblem(arg) : renderPracticeList();
+    else if (page === 'patterns') renderPatterns(arg);
+    else if (page === 'cheatsheet') renderCheatsheet();
     else renderNotFound();
-    $$('.nav a').forEach((a) => a.classList.toggle('active', a.dataset.nav === (page === 'lesson' ? 'home' : (page || 'home'))));
+    const navKey = page === 'lesson' ? 'home' : page === 'cheatsheet' ? 'patterns' : (page || 'home');
+    $$('.nav a').forEach((a) => a.classList.toggle('active', a.dataset.nav === navKey));
     const lesson = page === 'lesson' && lessonById(arg);
     document.title = lesson ? `${lesson.id}. ${lesson.title} · מסע ל-System Design` : 'מסע ל-System Design';
-    if (!(page === 'glossary' && arg)) window.scrollTo(0, 0);
+    if (page === 'patterns' && arg) { const t = $('#p-' + arg); if (t) setTimeout(() => t.scrollIntoView({ behavior: 'smooth' }), 50); else window.scrollTo(0, 0); }
+    else if (!(page === 'glossary' && arg)) window.scrollTo(0, 0);
     updateChrome();
   }
 
@@ -976,6 +1117,17 @@
       case 'download': downloadLesson(arg); break;
       case 'print': $$('details').forEach((d) => { d.open = true; }); window.print(); break;
       case 'complete': completeLesson(Number(arg)); break;
+      case 'practice-done': {
+        const id = act.dataset.arg;
+        state.practice[id] = { ...(state.practice[id] || {}), done: Date.now() };
+        save(); toast(`תרגיל הושלם! ${practiceDone()}/${PRACTICE.length} 💪`); render();
+        break;
+      }
+      case 'practice-prompt': {
+        const pr = PRACTICE.find((x) => x.id === act.dataset.arg);
+        copyText(practicePrompt(pr), 'הפרומפט הועתק, עם כל התשובות שלך. אפשר להדביק בקלוד');
+        break;
+      }
       case 'new-mine': openMineModal(); break;
       case 'gen-prompt':
         $('#promptOut').value = buildPrompt({ mine: $('#pMine').checked, weak: $('#pWeak').checked, quizMe: $('#pQuiz').checked });
@@ -1029,7 +1181,13 @@
       save();
       return;
     }
-    if (!ex && !rf && !pr) return;
+    const pa = e.target.closest('[data-pr]');
+    if (pa) {
+      const [pid, i] = pa.dataset.pr.split(':');
+      const cur = state.practice[pid] || {};
+      state.practice[pid] = { ...cur, answers: { ...(cur.answers || {}), [i]: pa.value } };
+    }
+    if (!ex && !rf && !pr && !pa) return;
     if (ex) state.exercises[ex.dataset.ex] = ex.value;
     if (rf) state.reflections[rf.dataset.reflect] = rf.value;
     if (pr) state.predictions[pr.dataset.predict] = pr.value;

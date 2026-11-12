@@ -314,6 +314,10 @@ Cassandra, partition = (chat_id, month), clustering = seq.
       ],
     },
   ],
+  further: [
+    { title: "System Design Interview, כרכים 1 ו-2", source: "Alex Xu", why: "תרגול על עשרות מערכות (מקצר קישורים, פיד, צ'אט, מפות) באותה שיטה של הקורס.", search: "System Design Interview Alex Xu" },
+    { title: "The Architecture of Open Source Applications", source: "Amy Brown & Greg Wilson", why: "ספר חינמי ברשת שבו מפתחים מסבירים את הארכיטקטורה של מערכות אמיתיות, ולמה החליטו כך.", search: "The Architecture of Open Source Applications" },
+  ],
   predict: "רותם נותנת לך 45 דקות להציג את כל הארכיטקטורה. לפני שאת קוראת: איך היית בונה את ההצגה? מה בא ראשון, ועל מה היית מקדישה הכי הרבה זמן?",
   work: [
     "ציירי את הארכיטקטורה של מערכת אחת שאת עובדת עליה, בחמשת השלבים: דרישות, סדרי גודל, API ונתונים, רכיבים, ו\"מה קורה כש...\".",

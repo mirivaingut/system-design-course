@@ -226,6 +226,10 @@ SDC.lesson({
       ],
     },
   ],
+  further: [
+    { title: "How Discord Stores Billions of Messages", source: "Discord Engineering", why: "בדיוק הבעיה של שיחון: איך Discord עברו ל-Cassandra, ובחרו partition לפי ערוץ וזמן.", search: "How Discord Stores Billions of Messages" },
+    { title: "How Discord Stores Trillions of Messages", source: "Discord Engineering", why: "ההמשך, כמה שנים אחר כך: Hot Partitions, ומעבר ל-ScyllaDB. הדגמה מצוינת לכך שהחלטות מתיישנות.", search: "How Discord Stores Trillions of Messages" },
+  ],
   predict: "דיסק מת והמערכת למטה שעתיים, ובעוד חודשיים גם Cassandra תתמלא. אלה שתי בעיות שונות. מה היית עושה לכל אחת? ואיזו מהן דחופה יותר בעינייך?",
   work: [
     "גלי מתי היה הגיבוי האחרון של ה-DB המרכזי אצלכם, וכמה זמן לוקח לשחזר ממנו. מישהו ניסה לשחזר לאחרונה בפועל?",

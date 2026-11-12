@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS = {
 const SESSION_COOKIE = 'sdc_session';
 const LONG_SESSION = 30 * 86400;   // "לזכור אותי"
 const SHORT_SESSION = 12 * 3600;   // מחשב משותף
-const TOTAL_LESSONS = 16;
+const TOTAL_LESSONS = 18;
 const MAX_LOGIN_FAILS = 8;         // לכל IP ב-15 דקות
 
 export default {

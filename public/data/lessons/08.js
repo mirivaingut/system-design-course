@@ -302,6 +302,9 @@ SDC.lesson({
       ],
     },
   ],
+  further: [
+    { title: "The Log: What every software engineer should know about real-time data's unifying abstraction", source: "Jay Kreps", why: "המאמר של אחד מיוצרי Kafka, על למה לוג הוא הבסיס של מערכות נתונים. קלאסיקה.", search: "The Log What every software engineer should know Jay Kreps" },
+  ],
   predict: "שליחת הודעה נכשלת כי Google איטי בשליחת Push. לאילו מששת השלבים המשתמש באמת חייב לחכות? איך היית מארגנת מחדש את התהליך?",
   work: [
     "מצאי endpoint אחד אצלכם שעושה כמה דברים ברצף בתוך הבקשה. לאילו מהם המשתמש באמת חייב לחכות, ואילו אפשר להעביר לתור?",

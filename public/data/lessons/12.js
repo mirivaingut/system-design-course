@@ -307,6 +307,10 @@ SDC.lesson({
       ],
     },
   ],
+  further: [
+    { title: "Timeouts, retries, and backoff with jitter", source: "Amazon Builders' Library", why: "איך Amazon מגדירים timeouts ו-retries בפועל, עם ההסבר למה Jitter כל כך חשוב.", search: "Amazon Builders Library Timeouts retries and backoff with jitter" },
+    { title: "Site Reliability Engineering: Addressing Cascading Failures", source: "Google SRE Book", why: "הפרק שמנתח בדיוק תקלות כמו זו של Redis בשיעור הזה. הספר חינמי ברשת.", search: "Google SRE book Addressing Cascading Failures" },
+  ],
   predict: "שרת Redis אחד האט, ושלוש דקות אחר כך כל שיחון למטה. איפה בשרשרת היית עוצרת את ההתגלגלות? רשמי לפחות שני מנגנונים שהיו מונעים את זה.",
   work: [
     "בדקי Retry אחד שקיים אצלכם: כמה ניסיונות? יש המתנה הולכת וגדלה (Exponential Backoff) ו-Jitter? ושכבה אחרת עושה גם היא Retry על אותה קריאה?",

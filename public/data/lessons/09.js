@@ -244,6 +244,9 @@ GET /v1/chats/{chatId}/messages?before={messageId}&limit=50
       ],
     },
   ],
+  further: [
+    { title: "Designing robust and predictable APIs with idempotency", source: "Stripe Blog", why: "איך Stripe משתמשים ב-Idempotency-Key כדי שתשלום לא יחויב פעמיים. בדיוק הבעיה של ההודעות הכפולות.", search: "Stripe Designing robust and predictable APIs with idempotency" },
+  ],
   predict: "שלוש בעיות: הודעות כפולות כשהרשת נופלת, גלילה שמראה הודעות פעמיים, ובוט ששולח 500 הודעות בשנייה. איך היית פותרת כל אחת ברמת ה-API?",
   work: [
     "בחרי endpoint של יצירה (POST) אצלכם. מה יקרה אם הלקוח ישלח את אותה בקשה פעמיים, כי לא קיבל תשובה? נסי בסביבת בדיקות.",

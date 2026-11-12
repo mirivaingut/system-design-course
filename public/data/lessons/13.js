@@ -191,6 +191,9 @@ SDC.lesson({
       ],
     },
   ],
+  further: [
+    { title: "How Discord Indexes Billions of Messages", source: "Discord Engineering", why: "איך Discord בנו חיפוש בהודעות עם Elasticsearch: אינדוקס אסינכרוני ופיצול לפי שרת.", search: "How Discord Indexes Billions of Messages" },
+  ],
   predict: "שרתי ה-API מבלים 70% מהזמן בהעברת קבצים, ומשתמשים בברזיל מחכים 6 שניות לתמונה. איך היית מוציאה את הקבצים מהשרתים? ואיך היית מאפשרת חיפוש בהודעות?",
   work: [
     "בדקי איך מועלים קבצים אצלכם: הקובץ עובר דרך השרת, או ישירות לאחסון (Pre-signed URL)? מה הגודל המקסימלי, ואיפה הוא נאכף?",

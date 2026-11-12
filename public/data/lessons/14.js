@@ -233,6 +233,10 @@ DELETE /scheduled-messages/{id}</code></pre>
       ],
     },
   ],
+  further: [
+    { title: "OWASP API Security Top 10: Broken Object Level Authorization", source: "OWASP", why: "הפגיעות מספר 1 ברשימה היא בדיוק מה שחוקר האבטחה מצא בשיחון.", search: "OWASP API Security Top 10 Broken Object Level Authorization" },
+    { title: "Site Reliability Engineering: Monitoring Distributed Systems", source: "Google SRE Book", why: "מקור ארבעת ה-Golden Signals, ולמה מתריעים על סימפטומים ולא על סיבות.", search: "Google SRE book Monitoring Distributed Systems" },
+  ],
   predict: "חוקר אבטחה שינה מספר ב-URL וקרא הודעות של אחרים, ו-2% מהבקשות איטיות בלי שאף אחד יודע למה. מה היית בודקת קודם בכל אחת מהבעיות?",
   work: [
     "בסביבת בדיקות: התחברי כמשתמש א' ונסי לגשת למשאב של משתמש ב', על ידי שינוי המזהה ב-URL. קיבלת 403 או 404?",

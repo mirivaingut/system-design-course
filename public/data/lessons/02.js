@@ -229,6 +229,10 @@ Content-Type: application/json
       ],
     },
   ],
+  further: [
+    { title: "Latency Numbers Every Programmer Should Know", source: "Jeff Dean / Peter Norvig", why: "הטבלה המפורסמת של זמני גישה, מזיכרון ועד חבילה שחוצה אוקיינוס. יש גרסאות אינטראקטיביות שמעודכנות לפי שנה.", search: "Latency Numbers Every Programmer Should Know" },
+    { title: "High Performance Browser Networking", source: "Ilya Grigorik", why: "ספר חינמי ברשת על TCP, TLS, HTTP/2 ומה שקורה בדרך. מצוין למפתחת React שרוצה להבין למה הדף איטי.", search: "High Performance Browser Networking Grigorik" },
+  ],
   predict: "השרת מטפל בבקשה ב-15ms, אבל המשתמשים בניו יורק מחכים שנייה וחצי. איפה לדעתך הולך הזמן? רשמי את הניחוש שלך, ואיך היית בודקת אותו.",
   work: [
     "ב-DevTools, בלשונית Network, לחצי על בקשה אחת ועברי ללשונית Timing. כמה זמן הלך על DNS, על חיבור ועל TLS, וכמה על המתנה לשרת (Waiting)?",

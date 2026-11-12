@@ -295,6 +295,9 @@ EXPLAIN SELECT * FROM messages WHERE chat_id = 42 ORDER BY created_at DESC LIMIT
       ],
     },
   ],
+  further: [
+    { title: "Use The Index, Luke", source: "Markus Winand", why: "אתר חינמי ומעולה על אינדקסים ב-SQL, עם דוגמאות ל-PostgreSQL ול-MySQL. כדאי במיוחד לפני ש\"עוברים ל-NoSQL\".", search: "Use The Index Luke" },
+  ],
   predict: "עומר רוצה לעבור ל-MongoDB, ונועה שואלת אם יש אינדקס. לפני שאת קוראת: מה היית בודקת קודם, ולמה? ומתי לדעתך באמת שווה להחליף בסיס נתונים?",
   work: [
     "מצאי את 3 השאילתות שלוקחות הכי הרבה זמן במצטבר (pg_stat_statements, Slow Query Log או כלי ה-APM). מה משותף להן?",

@@ -218,6 +218,10 @@ SDC.lesson({
       ],
     },
   ],
+  further: [
+    { title: "MonolithFirst", source: "Martin Fowler", why: "פוסט קצר ומשפיע: למה כמעט כל מערכת מוצלחת של מיקרו-שירותים התחילה כמונולית.", search: "Martin Fowler MonolithFirst" },
+    { title: "Microservices", source: "Martin Fowler & James Lewis", why: "המאמר שהגדיר את המונח. שווה לקרוא דווקא אחרי השיעור, כשמבינים את המחיר.", search: "Martin Fowler James Lewis Microservices article" },
+  ],
   predict: "דני רוצה לעבור למיקרו-שירותים, אבל ראה איך זה נכשל במקום אחר. אם ההחלטה הייתה שלך, איזה חלק היית מוציאה ראשון מהמונולית, ולמה דווקא אותו? או שאולי לא היית מפצלת בכלל?",
   work: [
     "מצאי שינוי אחד מהחודש האחרון שדרש לפרוס כמה שירותים יחד, או לתאם בין צוותים. מה הייתה הסיבה? הגבול בין השירותים במקום הנכון?",

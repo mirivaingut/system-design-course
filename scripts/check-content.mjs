@@ -14,6 +14,9 @@ run('js/core.js');
 run('data/glossary.js');
 const lessonFiles = readdirSync(join(root, 'data/lessons')).filter((f) => f.endsWith('.js')).sort();
 lessonFiles.forEach((f) => run('data/lessons/' + f));
+run('data/patterns.js');
+run('data/practice.js');
+run('data/cheatsheet.js');
 const widgetSrc = readFileSync(join(root, 'js/widgets.js'), 'utf8');
 const widgetNames = new Set([...widgetSrc.matchAll(/W\.(\w+)\s*=/g)].map((m) => m[1]));
 
@@ -36,7 +39,7 @@ const walk = (where, v) => {
   else if (v && typeof v === 'object') Object.entries(v).forEach(([k, x]) => walk(`${where}.${k}`, x));
 };
 
-if (lessons.length !== 16) errors.push(`expected 16 lessons, got ${lessons.length}`);
+if (lessons.length !== 18) errors.push(`expected 18 lessons, got ${lessons.length}`);
 const qids = new Set();
 lessons.forEach((l, i) => {
   if (l.id !== i + 1) errors.push(`lesson order: index ${i} has id ${l.id}`);
@@ -55,6 +58,32 @@ lessons.forEach((l, i) => {
   });
 });
 
+const { patterns = [], patternQuiz = [], practice = [], cheatsheet } = ctx.SDC;
+const lessonIds = new Set(lessons.map((l) => l.id));
+const patternIds = new Set(patterns.map((p) => p.id));
+patterns.forEach((p) => {
+  walk(`pattern ${p.id}`, p);
+  p.lessons.forEach((id) => { if (!lessonIds.has(id)) errors.push(`pattern ${p.id}: bad lesson ${id}`); });
+});
+patternQuiz.forEach((q) => {
+  walk(`pattern quiz ${q.id}`, q);
+  if (qids.has(q.id)) errors.push(`duplicate question id ${q.id}`);
+  qids.add(q.id);
+  if (q.explain.length !== q.options.length) errors.push(`${q.id}: explain count`);
+  if (!(q.answer >= 0 && q.answer < q.options.length)) errors.push(`${q.id}: answer out of range`);
+});
+practice.forEach((p) => {
+  walk(`practice ${p.id}`, p);
+  if (!lessonIds.has(p.after)) errors.push(`practice ${p.id}: bad lesson ${p.after}`);
+  p.patterns.forEach((id) => { if (!patternIds.has(id)) errors.push(`practice ${p.id}: unknown pattern ${id}`); });
+  for (const k of ['mid', 'senior', 'staff']) if (!p.levels[k]) errors.push(`practice ${p.id}: missing level ${k}`);
+});
+if (cheatsheet) {
+  walk('cheatsheet', cheatsheet);
+  [...cheatsheet.defaults.map((r) => r[3]), ...cheatsheet.mistakes.map((r) => r[2])].forEach((id) => { if (!lessonIds.has(id)) errors.push(`cheatsheet: bad lesson ${id}`); });
+}
+lessons.forEach((l) => (l.further || []).forEach((f, i) => { if (!f.title || !f.source || !f.why) errors.push(`lesson ${l.id}: further[${i}] incomplete`); }));
+
 Object.entries(glossary).forEach(([k, g]) => {
   for (const f of ['en', 'he', 'lesson', 'short', 'long']) if (!g[f]) errors.push(`glossary ${k}: missing ${f}`);
   if (!lessons.find((l) => l.id === g.lesson)) errors.push(`glossary ${k}: bad lesson ${g.lesson}`);
@@ -64,7 +93,7 @@ Object.entries(glossary).forEach(([k, g]) => {
 
 const unused = Object.keys(glossary).filter((k) => !used.has(k));
 const totalQ = qids.size;
-console.log(`lessons: ${lessons.length}, questions: ${totalQ}, glossary terms: ${Object.keys(glossary).length}, widgets: ${widgetNames.size}`);
+console.log(`lessons: ${lessons.length}, questions: ${totalQ}, glossary terms: ${Object.keys(glossary).length}, widgets: ${widgetNames.size}, patterns: ${patterns.length}, practice: ${practice.length}`);
 if (unused.length) console.log(`terms not linked from any lesson (still in glossary): ${unused.join(', ')}`);
 if (errors.length) { console.error('\n✗ ' + errors.join('\n✗ ')); process.exit(1); }
 console.log('✓ content OK');

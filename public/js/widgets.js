@@ -463,5 +463,106 @@
     retries.bind(el, calc); layers.bind(el, calc); calc();
   };
 
+  // שני קונים על המקום האחרון: צעד אחרי צעד, בכל אחת מארבע הגישות
+  W.race = (el) => {
+    const MODES = {
+      naive: {
+        label: 'בלי הגנה',
+        steps: [
+          ['A', 'SELECT seats → 1', 'רואה שנשאר מקום אחד'],
+          ['B', 'SELECT seats → 1', 'גם B רואה מקום אחד, כי A עוד לא כתב'],
+          ['A', 'UPDATE seats = 0', 'A "קנה"'],
+          ['B', 'UPDATE seats = 0', 'B "קנה" גם הוא. הכתיבה שלו דורסת את של A'],
+        ],
+        end: ['bad', '2 כרטיסים נמכרו על מקום אחד', 'זה Race Condition קלאסי: הבדיקה והכתיבה הן שתי פעולות נפרדות, ובין שתיהן העולם השתנה. בבדיקות מקומיות זה כמעט לא קורה. בעומס של אלפי קליקים בשנייה, זה קורה כל הזמן.'],
+      },
+      pessimistic: {
+        label: 'נעילה (FOR UPDATE)',
+        steps: [
+          ['A', 'SELECT … FOR UPDATE → 1', 'A נועל את השורה'],
+          ['B', 'SELECT … FOR UPDATE ⏳', 'B מחכה. השורה נעולה'],
+          ['A', 'UPDATE seats = 0; COMMIT', 'A קנה ושחרר את הנעילה'],
+          ['B', '… → 0', 'B ממשיך, רואה 0 ומקבל "אזל"'],
+        ],
+        end: ['ok', 'כרטיס אחד, נכון', 'נכון ופשוט. המחיר: כל הקונים מחכים בתור על אותה שורה. עם 80,000 קליקים זה צוואר בקבוק, ונעילות שמוחזקות זמן רב (למשל בזמן קריאה לחברת אשראי) הורגות את התפוקה.'],
+      },
+      optimistic: {
+        label: 'אופטימית (version)',
+        steps: [
+          ['A', 'SELECT seats, version → 1, v7', ''],
+          ['B', 'SELECT seats, version → 1, v7', 'אין נעילה, שניהם קוראים'],
+          ['A', 'UPDATE … WHERE version = 7 → 1 row', 'A הצליח, version = 8'],
+          ['B', 'UPDATE … WHERE version = 7 → 0 rows', 'B נכשל: מישהו שינה בינתיים. קורא שוב, רואה 0, "אזל"'],
+        ],
+        end: ['ok', 'כרטיס אחד, נכון', 'אף אחד לא מחכה. מצוין כשהתנגשויות נדירות (עריכת פרופיל). אבל כשכולם מתנגשים על אותה שורה, רוב הניסיונות נכשלים ונשלחים שוב, וזה בזבוז. ב-JPA זה פשוט @Version.'],
+      },
+      atomic: {
+        label: 'עדכון מותנה',
+        steps: [
+          ['A', 'UPDATE seats = seats - 1 WHERE seats > 0 → 1 row', 'הבדיקה והכתיבה בפעולה אחת'],
+          ['B', 'UPDATE seats = seats - 1 WHERE seats > 0 → 0 rows', '0 שורות עודכנו: אזל'],
+        ],
+        end: ['ok', 'כרטיס אחד, נכון, ומהר', 'כשאפשר לבטא את כל הכלל בתנאי אחד, ה-DB דואג לאטומיות בעצמו. בלי נעילה מפורשת ובלי ניסיון חוזר. זו בדרך כלל ברירת המחדל הכי טובה למונים ולמלאי.'],
+      },
+    };
+    let mode = 'naive';
+    let step = 0;
+    el.innerHTML = `<div class="w-title">מרוץ על המקום האחרון</div>
+      <div class="w-desc">נשאר מקום אחד. A ו-B לוחצים "קני" באותה מילי-שנייה. לחצי "הצעד הבא" ותראי מה קורה בכל גישה.</div>
+      <div class="seg" style="margin-bottom:12px">${Object.entries(MODES).map(([k, m]) => `<button data-m="${k}"${k === mode ? ' class="on"' : ''}>${m.label}</button>`).join('')}</div>
+      <div class="race"></div>
+      <div class="row" style="margin-top:12px"><button type="button" class="btn small" data-step>הצעד הבא ←</button><button type="button" class="btn ghost small" data-reset>מההתחלה</button></div>
+      <div class="w-out" style="margin-top:12px"></div><div class="w-note"></div>`;
+    const draw = () => {
+      const m = MODES[mode];
+      el.querySelector('.race').innerHTML = m.steps.map(([who, sql, note], i) => `<div class="race-row ${i < step ? 'shown' : ''} who-${who}">
+        <span class="race-who">${who}</span><code>${sql}</code><span class="race-note">${i < step ? note : ''}</span></div>`).join('');
+      const done = step >= m.steps.length;
+      el.querySelector('[data-step]').disabled = done;
+      el.querySelector('.w-out').innerHTML = done ? `<div class="m ${m.end[0]}"><b>${m.end[0] === 'ok' ? '✓' : '✗'}</b><span>${m.end[1]}</span></div>` : '';
+      el.querySelector('.w-note').innerHTML = done ? m.end[2] : `צעד ${step} מתוך ${m.steps.length}`;
+    };
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-m]');
+      if (b) { mode = b.dataset.m; step = 0; el.querySelectorAll('[data-m]').forEach((x) => x.classList.toggle('on', x === b)); draw(); return; }
+      if (e.target.closest('[data-step]')) { step++; draw(); }
+      if (e.target.closest('[data-reset]')) { step = 0; draw(); }
+    });
+    draw();
+  };
+
+  // משימה ארוכה: מה המשתמש חווה בכל גישה
+  W.longtask = (el) => {
+    const dur = slider(nid('d'), 'כמה זמן לוקחת המשימה (שניות)', { min: 1, max: 600, value: 90, log: true });
+    const fail = slider(nid('f'), 'אחוז הסיכוי שהשרת יופעל מחדש באמצע', { min: 0, max: 30, value: 5, show: (v) => v + '%' });
+    let mode = 'sync';
+    el.innerHTML = `<div class="w-title">ייצוא של היסטוריית צ'אט</div>
+      <div class="w-desc">משתמשת מבקשת לייצא את כל ההיסטוריה של קבוצה (ZIP עם הודעות ותמונות). מה קורה בכל גישה?</div>
+      <div class="w-controls">${dur.html}${fail.html}</div>
+      <div class="seg" style="margin-bottom:12px"><button data-m="sync" class="on">בתוך בקשת HTTP</button><button data-m="async">202 + תור + סטטוס</button><button data-m="steps">תור + צעדים עם checkpoint</button></div>
+      <div class="w-out"></div><div class="w-note"></div>`;
+    const calc = () => {
+      const d = dur.read(el); const f = fail.read(el) / 100;
+      const out = el.querySelector('.w-out'); const note = el.querySelector('.w-note');
+      if (mode === 'sync') {
+        const timeout = d > 30;
+        out.innerHTML = metric('המשתמשת מחכה', timeout ? 'Timeout' : d + ' s', timeout ? 'bad' : d > 5 ? 'mid' : 'ok')
+          + metric('thread תפוס בשרת', d + ' s', d > 5 ? 'bad' : 'mid') + metric('סיכוי להתחיל מאפס', Math.round(f * 100) + '%', f > 0 ? 'mid' : 'ok');
+        note.innerHTML = timeout ? 'רוב ה-Load Balancers וה-Gateways סוגרים חיבור אחרי 30–60 שניות. המשימה אולי ממשיכה לרוץ בשרת, אבל המשתמשת קיבלה שגיאה ותלחץ שוב. עכשיו רצות שתיים.' : 'למשימה קצרה זה סביר. אבל כל thread שמחכה הוא thread שלא משרת בקשות אחרות.';
+      } else if (mode === 'async') {
+        out.innerHTML = metric('המשתמשת מחכה', '< 100 ms', 'ok') + metric('thread תפוס ב-API', '~0', 'ok') + metric('עבודה שהולכת לאיבוד בתקלה', Math.round(d / 2) + ' s בממוצע', f > 0 ? 'mid' : 'ok');
+        note.innerHTML = 'השרת מחזיר מיד <code>202 Accepted</code> עם מזהה משימה, ו-Worker מבצע אותה מהתור. הלקוח שואל על הסטטוס, או מקבל התראה כשהיא מוכנה. אם ה-Worker נופל, התור מחזיר את המשימה, אבל היא מתחילה מההתחלה.';
+      } else {
+        out.innerHTML = metric('המשתמשת מחכה', '< 100 ms', 'ok') + metric('עבודה שהולכת לאיבוד בתקלה', '≤ צעד אחד', 'ok') + metric('מורכבות', 'גבוהה יותר', 'mid');
+        note.innerHTML = 'המשימה מחולקת לצעדים (לאסוף הודעות, להוריד תמונות, לדחוס, להעלות), וכל צעד שהסתיים נשמר. תקלה מחזירה רק לצעד האחרון. זה בדיוק מה ש-Workflow Engine כמו Temporal נותן מהקופסה.';
+      }
+    };
+    el.querySelector('.seg').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-m]'); if (!b) return;
+      mode = b.dataset.m; el.querySelectorAll('[data-m]').forEach((x) => x.classList.toggle('on', x === b)); calc();
+    });
+    dur.bind(el, calc); fail.bind(el, calc); calc();
+  };
+
   window.SDC_WIDGETS = W;
 })();
