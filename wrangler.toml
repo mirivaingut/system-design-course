@@ -1,0 +1,21 @@
+name = "system-design-course"
+main = "src/worker.js"
+compatibility_date = "2025-09-01"
+
+# האתר עצמו (קבצים סטטיים). כל בקשה עוברת קודם ב-Worker, שבודק כניסה עם קוד.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+# אחסון ההתקדמות, המאגר האישי והגדרות התזכורות
+[[kv_namespaces]]
+binding = "COURSE_KV"
+id = "b2307175603f474b8cf843d5bce881b8"
+
+# בדיקת תזכורות פעם בשעה (הזמן בפועל נקבע בהגדרות באתר, לפי שעון ישראל)
+[triggers]
+crons = ["0 * * * *"]
+
+[vars]
+MAIL_FROM = "System Design Course <onboarding@resend.dev>"

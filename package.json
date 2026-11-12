@@ -1,0 +1,16 @@
+{
+  "name": "system-design-course",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "קורס System Design אישי - אתר על Cloudflare Workers",
+  "scripts": {
+    "dev": "wrangler dev --ip 127.0.0.1 --port 8787",
+    "deploy": "wrangler deploy",
+    "check": "node scripts/check-content.mjs",
+    "change-code": "powershell -ExecutionPolicy Bypass -File scripts/change-code.ps1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>מסע ל-System Design</title>
+  <meta name="description" content="קורס אישי של חודש ב-System Design וארכיטקטורה: 15 שיעורים, סימולציות, תרגילים ומילון מושגים.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234b3f8f'/%3E%3Ccircle cx='18' cy='22' r='6' fill='%23ffb4a2'/%3E%3Ccircle cx='46' cy='22' r='6' fill='%23ffb4a2'/%3E%3Ccircle cx='32' cy='44' r='6' fill='%23fff'/%3E%3Cpath d='M18 22L32 44L46 22' stroke='%23fff' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&family=Assistant:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#main">דילוג לתוכן</a>
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">מסע ל-<b>System Design</b></span>
+    </a>
+    <nav class="nav" aria-label="ניווט ראשי">
+      <a href="#/" data-nav="home">🗺️ <span>המסע</span></a>
+      <a href="#/glossary" data-nav="glossary">📖 <span>מילון</span></a>
+      <a href="#/my" data-nav="my">⭐ <span>המאגר שלי</span><em class="badge-count" id="myCount" hidden></em></a>
+      <a href="#/settings" data-nav="settings">⚙️ <span>הגדרות</span></a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="החלפת מצב כהה/בהיר">🌙</button>
+    </nav>
+  </header>
+  <div class="progress-strip" aria-hidden="true"><div id="progressFill"></div></div>
+
+  <main id="main" tabindex="-1"></main>
+
+  <footer class="footer">
+    <span>נבנה במיוחד בשבילך · <a href="#/about">על הקורס ואיך הוא בנוי</a></span>
+    <span id="syncStatus" class="sync-status"></span>
+  </footer>
+
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+  <button id="selectionAdd" class="selection-add" type="button" hidden>➕ הוספה למאגר שלי</button>
+  <div id="modalRoot"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/core.js"></script>
+  <script src="data/glossary.js"></script>
+  <script src="data/lessons/01.js"></script>
+  <script src="data/lessons/02.js"></script>
+  <script src="data/lessons/03.js"></script>
+  <script src="data/lessons/04.js"></script>
+  <script src="data/lessons/05.js"></script>
+  <script src="data/lessons/06.js"></script>
+  <script src="data/lessons/07.js"></script>
+  <script src="data/lessons/08.js"></script>
+  <script src="data/lessons/09.js"></script>
+  <script src="data/lessons/10.js"></script>
+  <script src="data/lessons/11.js"></script>
+  <script src="data/lessons/12.js"></script>
+  <script src="data/lessons/13.js"></script>
+  <script src="data/lessons/14.js"></script>
+  <script src="data/lessons/15.js"></script>
+  <script src="js/widgets.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
